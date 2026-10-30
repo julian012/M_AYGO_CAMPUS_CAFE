@@ -164,9 +164,29 @@
       }).catch(function () { ph.textContent = id + ": sin conexión con la API"; });
     });
   }
+  var lookedUp = null;    // orderId currently shown in the search result box
+  function renderLookup() {
+    var box = $("lookup-result");
+    box.textContent = "";
+    if (!lookedUp) return;
+    var id = lookedUp;
+    api("GET", "/orders/" + encodeURIComponent(id)).then(function (r) {
+      if (id !== lookedUp) return;
+      if (r.status === 200) {
+        var close = el("button", { type: "button", className: "secondary", textContent: "Cerrar resultado" });
+        close.addEventListener("click", function () { lookedUp = null; renderLookup(); });
+        var item = renderOrder(r.data);
+        item.appendChild(close);
+        box.appendChild(el("ul", {}, [item]));
+      } else {
+        banner(r.status === 404 ? "Pedido no encontrado." : "Error al buscar: " + errText(r));
+        lookedUp = null;
+      }
+    }).catch(function () { banner("Sin respuesta de la API."); });
+  }
   function cancelOrder(id) {
     api("POST", "/orders/" + encodeURIComponent(id) + "/cancel").then(function (r) {
-      if (r.status === 200) { banner("Pedido cancelado.", true); renderOrders(); }
+      if (r.status === 200) { banner("Pedido cancelado.", true); renderOrders(); renderLookup(); }
       else banner("No se pudo cancelar: " + errText(r));
     }).catch(function () { banner("Sin respuesta de la API al cancelar."); });
   }
@@ -174,10 +194,9 @@
     ev.preventDefault();
     var id = $("lookup-id").value.trim();
     if (!id) return;
-    api("GET", "/orders/" + encodeURIComponent(id)).then(function (r) {
-      if (r.status === 200) { rememberOrder(id); $("lookup-id").value = ""; banner(""); renderOrders(); }
-      else banner(r.status === 404 ? "Pedido no encontrado." : "Error al buscar: " + errText(r));
-    }).catch(function () { banner("Sin respuesta de la API."); });
+    banner("");
+    lookedUp = id;          // search shows ONLY this order; "Mis pedidos" is not changed
+    renderLookup();
   }
 
   // ---------- Init ----------

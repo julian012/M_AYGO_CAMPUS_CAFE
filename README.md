@@ -89,7 +89,7 @@ Las tablas no tienen `DeletionPolicy: Retain`: se borran con el stack. Hacerlo s
 ## 9. Qué NO se verificó
 - **Aislamiento IAM entre servicios:** ambas funciones usan `LabRole`. Los roles de mínimo privilegio de la plantilla solo se validaron de forma estática (`cfn-lint`, `sam validate`); nunca se desplegaron.
 - **Contenido de las políticas del lab** asociadas a `LabRole`: `iam:GetPolicy` está denegado.
-- **Frontend en el navegador:** se comprobaron manualmente solo la carga del menú y la creación de pedidos. **No se probaron:** reintento tras un 503, recarga con recuperación de pedidos, búsqueda por ID ni cancelación desde la interfaz (ver paso 3 y 6 de la demo). Tampoco se probó en otros navegadores.
+- **Frontend en el navegador:** se comprobaron manualmente la carga del menú, la creación de pedidos, la cancelación y el reintento tras un fallo. La búsqueda por ID tenía un defecto (mostraba todos los pedidos guardados); se corrigió para mostrar solo el pedido buscado, pero **esa corrección no está probada en el navegador**. La recarga con recuperación de pedidos no se ha confirmado. Tampoco se probó en otros navegadores.
 - **Rendimiento:** una sola ejecución de 20 lecturas desde una máquina local en Colombia; el p95 es indicativo. Cold start medido una vez. No se hicieron pruebas de carga.
 - **Plazo de Catalog:** el segundo pedido fallido tardó 3,0 s en el servidor, pero el primero 4,1 s (por encima del plazo de 3 s) sin causa verificada. Solo se probó un timeout por IP sin ruta, no un rechazo inmediato de conexión.
 - **Correlación Orders → Catalog:** el `requestId` no se propaga a la llamada interna; no se puede seguir una petición entre los dos servicios por ID.

@@ -40,10 +40,10 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
 
 ## 4. Frontend
 - [x] Menú (con producto no disponible marcado)
-- [x] Carrito + envío con `Idempotency-Key` (se genera al empezar el envío, se reutiliza en reintentos) (creación probada en navegador; el reintento aún no)
-- [~] Confirmación y limpiar el carrito solo tras éxito
-- [~] IDs de pedido en `localStorage`; recuperar tras recargar; campo para buscar por ID
-- [~] Cancelar pedido
+- [x] Carrito + envío con `Idempotency-Key` (se genera al empezar el envío, se reutiliza en reintentos) (creación y reintento tras fallo probados en navegador)
+- [x] Confirmación y limpiar el carrito solo tras éxito
+- [~] IDs de pedido en `localStorage`; recuperar tras recargar; campo para buscar por ID (búsqueda corregida, falta probarla en navegador)
+- [x] Cancelar pedido (probado en navegador)
 - [~] URL de la API configurable; servir en `localhost:8080` (coincide con CORS)
 
 ## 5. Evidencias (deben ser salidas reales, guardadas en `evidence/`)
