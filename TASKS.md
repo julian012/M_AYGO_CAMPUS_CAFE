@@ -30,7 +30,7 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
   - Nota: moto prueba la lógica, no reemplaza la evidencia contra AWS real
 
 ## 3. Infraestructura (SAM)
-- [x] `template.yaml`: HttpApi (payload 2.0), 2 funciones, 2 tablas, roles mínimos por servicio, log groups con retención, access log, CORS, outputs: pasa `cfn-lint`
+- [x] `template.yaml`: HttpApi (payload 2.0), 2 funciones, 2 tablas, roles mínimos por servicio, log groups con retención, access log, CORS, outputs. `cfn-lint` hoy reporta E3031 y 2×W1028 por el parámetro opcional `ExistingExecutionRoleArn` con valor por defecto vacío (ver `evidence/local-checks.txt`); `sam validate --lint` sí es válido y el stack despliega
 - [x] `sam validate --lint`: válida
 - [x] `sam build`: correcto
 - [x] Stack `campus-cafe` desplegado (ver comando y nota sobre `LabRole` abajo)

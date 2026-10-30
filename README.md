@@ -32,6 +32,8 @@ scripts/run_unit_tests.sh            # 19 pruebas (4 Catalog + 15 Orders) con Dy
 sam validate --lint
 ```
 
+Salida guardada en `evidence/local-checks.txt`. `scripts/run_unit_tests.sh` pasa (19 pruebas) y `sam validate --lint` da la plantilla como válida. **`cfn-lint` reporta 1 error (E3031) y 2 advertencias (W1028)**: el parámetro opcional `ExistingExecutionRoleArn` tiene como valor por defecto `""`, que no cumple el patrón de ARN de IAM, y la condición `UseExistingRole` hace inalcanzable una rama de `Fn::If`. No impide el despliegue (el stack se creó y funciona), pero no está resuelto.
+
 ## 3. Despliegue
 ```bash
 aws sts get-caller-identity          # confirmar cuenta y región antes de desplegar
@@ -101,6 +103,7 @@ Las tablas no tienen `DeletionPolicy: Retain`: se borran con el stack. Hacerlo s
 - **Correlación Orders → Catalog:** el `requestId` no se propaga a la llamada interna; no se puede seguir una petición entre los dos servicios por ID.
 - **Seguridad de la API:** sin autenticación ni límite de peticiones propios (decisión de alcance); no se probó abuso.
 - **Python:** las pruebas unitarias corren en Python 3.9 con moto; la Lambda usa 3.12. Moto prueba la lógica, no latencia ni cold start. El código se probó en 3.12 solo por el despliegue y la aceptación reales.
+- **`cfn-lint`:** no pasa limpio (ver sección 2); no se corrigió la plantilla para no redesplegar al final de la entrega.
 - **Claves de idempotencia:** no caducan (sin TTL).
 - **Limpieza (`sam delete`):** documentada, no ejecutada.
 - **Evidencia corregida:** un commit intermedio de `evidence/fault-isolation.txt` afirmó por error que el despliegue estaba restaurado; la restauración inicial falló y se repitió. Ver el historial de git y el archivo.

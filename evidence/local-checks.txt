@@ -1,0 +1,91 @@
+# Comprobaciones locales (2026-10-30T08:03:42-0500), Python Python 3.9.6
+
+## scripts/run_unit_tests.sh
+test_get_product (test_catalog.CatalogTests) ... /Users/jcserna/Documents/obsidian/Notes/ISIS_AYGO_M_Arquitectura_gobernabilidad/Talleres/2026_10_29/campus-cafe/.venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+ok
+test_list_has_five_products_with_one_unavailable (test_catalog.CatalogTests) ... ok
+test_store_failure_returns_503 (test_catalog.CatalogTests) ... ok
+test_unknown_product_404 (test_catalog.CatalogTests) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.396s
+
+OK
+{"requestId": "req-1", "operation": "GET /products/{productId}", "result": "ok", "durationMs": 0.9, "status": 200}
+{"requestId": "req-1", "operation": "GET /products", "result": "ok", "durationMs": 0.8, "status": 200}
+{"requestId": "req-1", "operation": "GET /products", "result": "STORE_UNAVAILABLE", "durationMs": 0.0, "status": 503, "error": "ClientError"}
+{"requestId": "req-1", "operation": "GET /products/{productId}", "result": "PRODUCT_NOT_FOUND", "durationMs": 0.6, "status": 404}
+test_cancel_is_idempotent_and_persisted (test_orders.OrdersTests) ... /Users/jcserna/Documents/obsidian/Notes/ISIS_AYGO_M_Arquitectura_gobernabilidad/Talleres/2026_10_29/campus-cafe/.venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+ok
+test_cancel_unknown_order_404_and_creates_nothing (test_orders.OrdersTests) ... ok
+test_catalog_failure_returns_503_and_stores_nothing (test_orders.OrdersTests) ... ok
+test_client_price_override_is_ignored (test_orders.OrdersTests) ... ok
+test_create_computes_total_server_side (test_orders.OrdersTests) ... ok
+test_five_concurrent_identical_requests_create_one_order (test_orders.OrdersTests) ... ok
+test_get_order_survives_new_repository_instance (test_orders.OrdersTests) ... ok
+test_get_unknown_order_404 (test_orders.OrdersTests) ... ok
+test_invalid_requests_return_400 (test_orders.OrdersTests) ... ok
+test_missing_key_and_bad_json_return_400 (test_orders.OrdersTests) ... ok
+test_replay_is_stable_after_price_change (test_orders.OrdersTests) ... ok
+test_replay_returns_original_without_new_order_or_catalog_call (test_orders.OrdersTests) ... ok
+test_same_key_different_request_conflicts (test_orders.OrdersTests) ... ok
+test_unknown_product_400_and_unavailable_409 (test_orders.OrdersTests) ... ok
+test_unknown_route_404 (test_orders.OrdersTests) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 1.064s
+
+OK
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 3.0, "status": 201, "orderId": "4297e534-97cf-49d5-b916-154aff1aaa8b"}
+{"requestId": "req-1", "operation": "POST /orders/{orderId}/cancel", "result": "ok", "durationMs": 1.9, "status": 200, "orderId": "4297e534-97cf-49d5-b916-154aff1aaa8b"}
+{"requestId": "req-1", "operation": "POST /orders/{orderId}/cancel", "result": "ok", "durationMs": 1.8, "status": 200, "orderId": "4297e534-97cf-49d5-b916-154aff1aaa8b"}
+{"requestId": "req-1", "operation": "GET /orders/{orderId}", "result": "ok", "durationMs": 0.4, "status": 200, "orderId": "4297e534-97cf-49d5-b916-154aff1aaa8b"}
+{"requestId": "req-1", "operation": "POST /orders/{orderId}/cancel", "result": "ORDER_NOT_FOUND", "durationMs": 2.3, "status": 404, "orderId": "ghost"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "CATALOG_UNAVAILABLE", "durationMs": 1.2, "status": 503}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.0, "status": 201, "orderId": "bc901923-df19-40c3-af3e-a72c62b57a0e"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.0, "status": 201, "orderId": "c7c0a6f3-f43b-4fd6-a90b-9f9096d92920"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.1, "status": 201, "orderId": "66152648-4faf-4543-a660-347d94e08d49"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.2, "status": 201, "orderId": "7820d89a-964e-4eee-bab6-26a7ee8552a8"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 0.5, "status": 200, "orderId": "7820d89a-964e-4eee-bab6-26a7ee8552a8"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 0.5, "status": 200, "orderId": "7820d89a-964e-4eee-bab6-26a7ee8552a8"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 0.5, "status": 200, "orderId": "7820d89a-964e-4eee-bab6-26a7ee8552a8"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 0.4, "status": 200, "orderId": "7820d89a-964e-4eee-bab6-26a7ee8552a8"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.0, "status": 201, "orderId": "d0cbeed6-459e-4c3c-8de7-714e4cf2db9a"}
+{"requestId": "req-1", "operation": "GET /orders/{orderId}", "result": "ok", "durationMs": 1.0, "status": 200, "orderId": "d0cbeed6-459e-4c3c-8de7-714e4cf2db9a"}
+{"requestId": "req-1", "operation": "GET /orders/{orderId}", "result": "ORDER_NOT_FOUND", "durationMs": 0.7, "status": 404, "orderId": "nope"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "DUPLICATE_PRODUCT", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "MISSING_IDEMPOTENCY_KEY", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "INVALID_REQUEST", "durationMs": 0.0, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.0, "status": 201, "orderId": "6bbdc81b-a742-45c9-b89a-9613fdd8d8fa"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 0.4, "status": 200, "orderId": "6bbdc81b-a742-45c9-b89a-9613fdd8d8fa"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.2, "status": 201, "orderId": "193e92d1-9e33-4fbb-a5ac-548048ea851d"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 0.5, "status": 200, "orderId": "193e92d1-9e33-4fbb-a5ac-548048ea851d"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "ok", "durationMs": 2.0, "status": 201, "orderId": "274d3a9c-ecae-49a5-8f9f-0d520ab23fda"}
+{"requestId": "req-1", "operation": "POST /orders", "result": "IDEMPOTENCY_KEY_CONFLICT", "durationMs": 0.4, "status": 409}
+{"requestId": "req-1", "operation": "POST /orders", "result": "PRODUCT_NOT_FOUND", "durationMs": 0.9, "status": 400}
+{"requestId": "req-1", "operation": "POST /orders", "result": "PRODUCT_UNAVAILABLE", "durationMs": 0.5, "status": 409}
+{"requestId": "req-1", "operation": "DELETE /orders", "result": "ROUTE_NOT_FOUND", "durationMs": 0.0, "status": 404}
+
+## cfn-lint template.yaml
+E3031 '' does not match '^arn:(aws[a-zA-Z-]*)?:iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+$'
+template.yaml:21:14
+
+W1028 ['Fn::If', 1] is not reachable. When setting condition 'UseExistingRole' to True. Where existing status for condition 'NOTUseExistingRole' is True
+template.yaml:100:13
+
+W1028 ['Fn::If', 1] is not reachable. When setting condition 'UseExistingRole' to True. Where existing status for condition 'NOTUseExistingRole' is True
+template.yaml:132:13
+
+
+## sam validate --lint
+/Users/jcserna/Documents/obsidian/Notes/ISIS_AYGO_M_Arquitectura_gobernabilidad/Talleres/2026_10_29/campus-cafe/template.yaml is a valid SAM Template
