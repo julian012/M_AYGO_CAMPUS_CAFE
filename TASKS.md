@@ -57,10 +57,10 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
 - [x] Observabilidad: seguir un pedido del access log al log de la aplicación (mismo `requestId`) → `evidence/observability.txt`
 
 ## 6. Documentación y entrega
-- [~] README (esqueleto escrito; completar con regiones, URLs, comandos reales)
+- [x] README (regiones, URLs, comandos, resultados, demo y limpieza)
 - [x] Diagrama de arquitectura breve (`docs/`) → `docs/architecture.md`
 - [x] Dos decisiones: límites de servicio/datos e idempotencia atómica (`docs/decisions.md`) → `docs/decisions.md`
-- [ ] Anotar lo que **no** se verificó
+- [x] Anotar lo que **no** se verificó → README sección 9
 - [ ] Ensayar la demo (7 pasos) y subir el repositorio
 
 ## Despliegue en el Learner Lab: desviación a documentar
