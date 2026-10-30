@@ -21,11 +21,10 @@ registro de idempotencia para la clave: None
 	{"requestId": "GDvGnijQoAMESoA=", "operation": "POST /orders", "result": "CATALOG_UNAVAILABLE", "durationMs": 3009.6, "status": 503}
 
 
-## Restauración (CatalogBaseUrlOverride vacío) y verificación
-2026-10-30T07:49:38-0500 stack redesplegado sin override
-[FAIL] POST /orders -> 201 (503)
-[FAIL] Location header present
-[FAIL] Server total ignores client-supplied price (got None, expected 700)
+## Restauración y verificación
+Primer intento de restaurar: FALLÓ (`sam deploy` rechazó `CatalogBaseUrlOverride=` con valor vacío); el stack siguió con la URL inválida
+y una ejecución de acceptance.py en ese estado falló (KeyError: orderId). Segundo intento con `ParameterKey=...,ParameterValue='""'`: correcto.
+Nota: un commit anterior de este archivo decía por error "restaurado"; esa afirmación era falsa en ese momento y se corrige aquí.
 
 ## Conclusiones
 - Con Catalog inalcanzable, POST /orders devolvió 503 CATALOG_UNAVAILABLE en ambos intentos y la tabla Orders siguió con 14 ítems:
@@ -36,3 +35,6 @@ registro de idempotencia para la clave: None
   frente a 3-4 s en el servidor; GET /products tardó 5 s justo tras el despliegue. Probablemente arranques en frío tras el despliegue
   y red local, pero no se midió por separado. El plazo de 3 s se cumple en el segundo caso, no se puede afirmar para el primero.
 - Se probó una IP sin ruta (timeout), no un rechazo inmediato de conexión.
+2026-10-30T07:51:00-0500 CATALOG_BASE_URL vacío tras el redespliegue; acceptance.py:
+[PASS] POST /orders -> 201 (201)
+24/24 checks passed

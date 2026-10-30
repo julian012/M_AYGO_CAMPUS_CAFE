@@ -138,10 +138,16 @@ sam validate --lint && sam build && sam deploy \
 # Inyectar fallo: Orders no alcanza Catalog
 sam deploy ... --parameter-overrides FrontendOrigin=http://localhost:8080 \
   ExistingExecutionRoleArn=arn:aws:iam::318203795545:role/LabRole \
-  CatalogBaseUrlOverride=http://127.0.0.1:9
+  CatalogBaseUrlOverride=http://10.255.255.1
 # Esperado: POST /orders -> 503 y 0 pedidos creados
 
-# Restaurar: volver a desplegar sin CatalogBaseUrlOverride (o con valor vacío)
+# Restaurar (probado): un valor vacío solo se acepta con la sintaxis ParameterKey/ParameterValue;
+# "CatalogBaseUrlOverride=" a secas lo rechaza sam deploy.
+sam deploy ... --parameter-overrides \
+  ParameterKey=FrontendOrigin,ParameterValue=http://localhost:8080 \
+  ParameterKey=ExistingExecutionRoleArn,ParameterValue=arn:aws:iam::318203795545:role/LabRole \
+  ParameterKey=CatalogBaseUrlOverride,ParameterValue='""'
+# Comprobar: aws lambda get-function-configuration --function-name <OrdersFunctionName> --query 'Environment.Variables.CATALOG_BASE_URL'
 ```
 
 ### Cambiar el origen del frontend
