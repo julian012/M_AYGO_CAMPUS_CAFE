@@ -1,0 +1,5 @@
+boto3
+moto[dynamodb]
+pyyaml
+openapi-spec-validator
+cfn-lint

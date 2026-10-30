@@ -1,0 +1,19 @@
+date=2026-10-30T07:36:04-0500 api_region=us-east-1 runtime=python3.12 arch=arm64 memory=256MB
+client: sequential requests from the local machine over one keep-alive HTTPS connection
+
+cold start (first request after config change): status=200 2229 ms
+warm-up (3, excluded from stats): 136, 126, 121 ms
+
+20 sequential reads (all 200: True):
+  samples ms: 108, 127, 112, 110, 161, 121, 128, 123, 150, 126, 116, 125, 158, 118, 117, 127, 165, 135, 116, 123
+  min=108  median=124  mean=128  p95=161  max=165 ms
+
+## Cold start según el log de Lambda (Catalog, 07:36:13, la petición fría de arriba)
+Init Duration: 369.49 ms · Duration: 1269.13 ms · Billed Duration: 1639 ms · Max Memory Used: 92 MB
+Los 2229 ms medidos desde el cliente incluyen además el handshake TCP/TLS inicial y la ruta hasta API Gateway.
+Duration alta en frío (~1.3 s) frente a ~7 ms en caliente: coste de la primera invocación (importar boto3 y crear el cliente DynamoDB).
+
+## Notas
+- Cliente: máquina local (Colombia) -> us-east-1; los tiempos incluyen la red de ida y vuelta (~100 ms de base).
+- Latencia en el servidor (access log, GET /products en caliente): integrationLatency 24-43 ms, responseLatency 28-49 ms.
+- Una sola ejecución de 20 lecturas; no se repitió, así que el p95 es indicativo y no estadísticamente robusto.

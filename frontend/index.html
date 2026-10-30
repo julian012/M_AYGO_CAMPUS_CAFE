@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus Café</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>☕ Campus Café</h1>
+    <label class="api">API
+      <input id="api-url" type="url" spellcheck="false">
+      <button id="api-save" type="button">Guardar</button>
+    </label>
+  </header>
+
+  <div id="banner" role="status" aria-live="polite" hidden></div>
+
+  <main>
+    <section aria-labelledby="menu-h">
+      <h2 id="menu-h">Menú</h2>
+      <p id="menu-state">Cargando…</p>
+      <ul id="menu" class="cards"></ul>
+    </section>
+
+    <section aria-labelledby="cart-h">
+      <h2 id="cart-h">Carrito</h2>
+      <p id="cart-empty">El carrito está vacío.</p>
+      <ul id="cart"></ul>
+      <p class="total">Total estimado: <strong id="cart-total">$0.00</strong>
+        <small>(el total final lo calcula el servidor)</small></p>
+      <button id="submit" type="button" disabled>Enviar pedido</button>
+      <button id="clear" type="button" class="secondary">Vaciar</button>
+    </section>
+
+    <section aria-labelledby="orders-h">
+      <h2 id="orders-h">Mis pedidos</h2>
+      <form id="lookup">
+        <input id="lookup-id" placeholder="Buscar pedido por ID" aria-label="ID de pedido" required>
+        <button type="submit">Buscar</button>
+      </form>
+      <ul id="orders"></ul>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Campus Café - serverless ordering (API Gateway HTTP API, two Lambda services, two DynamoDB tables)
+
+Parameters:
+  FrontendOrigin:
+    Type: String
+    Default: http://localhost:8080
+    Description: Exact browser origin allowed by CORS (the locally served frontend).
+  LogRetentionDays:
+    Type: Number
+    Default: 14
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90]
+  CatalogBaseUrlOverride:
+    Type: String
+    Default: ""
+    Description: Leave empty in normal use (Orders calls Catalog through its own gateway). Set to an unreachable URL to inject a Catalog failure for the fault-isolation check.
+
+  ExistingExecutionRoleArn:
+    Type: String
+    Default: ""
+    Description: Optional. Use this existing role for both functions instead of creating least-privilege roles. Needed only in sandboxes that deny iam:CreateRole (e.g. AWS Academy Learner Lab, LabRole).
+
+Conditions:
+  UseExistingRole: !Not [!Equals [!Ref ExistingExecutionRoleArn, ""]]
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    MemorySize: 256
+
+Resources:
+  # ---------------- Data (one table per service) ----------------
+  CatalogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: productId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: productId, KeyType: HASH}
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: pk, AttributeType: S}
+      KeySchema:
+        - {AttributeName: pk, KeyType: HASH}
+
+  # ---------------- Logs ----------------
+  CatalogLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: !Ref LogRetentionDays
+
+  OrdersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: !Ref LogRetentionDays
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: !Ref LogRetentionDays
+
+  # ---------------- API ----------------
+  CampusCafeApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref FrontendOrigin]
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [content-type, idempotency-key]
+        ExposeHeaders: [location]
+        MaxAge: 600
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status","integrationLatency":"$context.integrationLatency","responseLatency":"$context.responseLatency","integrationRequestId":"$context.integration.requestId","ip":"$context.identity.sourceIp","requestTime":"$context.requestTime"}'
+      # Future: add an Auth block with a JWT authorizer here.
+
+  # ---------------- Services ----------------
+  CatalogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: services/catalog/
+      Handler: app.handler
+      Timeout: 5
+      Environment:
+        Variables:
+          CATALOG_TABLE: !Ref CatalogTable
+      LoggingConfig:
+        LogGroup: !Ref CatalogLogGroup
+      Role: !If [UseExistingRole, !Ref ExistingExecutionRoleArn, !Ref "AWS::NoValue"]
+      Policies:
+        - !If
+          - UseExistingRole
+          - !Ref "AWS::NoValue"
+          - Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:Scan]
+                Resource: !GetAtt CatalogTable.Arn
+      Events:
+        ListProducts:
+          Type: HttpApi
+          Properties: {ApiId: !Ref CampusCafeApi, Method: GET, Path: /products, PayloadFormatVersion: "2.0"}
+        GetProduct:
+          Type: HttpApi
+          Properties: {ApiId: !Ref CampusCafeApi, Method: GET, Path: "/products/{productId}", PayloadFormatVersion: "2.0"}
+
+  OrdersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: services/orders/
+      Handler: app.handler
+      Timeout: 10
+      Environment:
+        Variables:
+          ORDERS_TABLE: !Ref OrdersTable
+          CATALOG_BASE_URL: !Ref CatalogBaseUrlOverride
+          CATALOG_DEADLINE_SECONDS: "3"
+          CATALOG_ATTEMPT_TIMEOUT_SECONDS: "1.5"
+      LoggingConfig:
+        LogGroup: !Ref OrdersLogGroup
+      Role: !If [UseExistingRole, !Ref ExistingExecutionRoleArn, !Ref "AWS::NoValue"]
+      Policies:
+        - !If
+          - UseExistingRole
+          - !Ref "AWS::NoValue"
+          - Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem]
+                Resource: !GetAtt OrdersTable.Arn
+      Events:
+        CreateOrder:
+          Type: HttpApi
+          Properties: {ApiId: !Ref CampusCafeApi, Method: POST, Path: /orders, PayloadFormatVersion: "2.0"}
+        GetOrder:
+          Type: HttpApi
+          Properties: {ApiId: !Ref CampusCafeApi, Method: GET, Path: "/orders/{orderId}", PayloadFormatVersion: "2.0"}
+        CancelOrder:
+          Type: HttpApi
+          Properties: {ApiId: !Ref CampusCafeApi, Method: POST, Path: "/orders/{orderId}/cancel", PayloadFormatVersion: "2.0"}
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for the frontend and acceptance checks
+    Value: !Sub "https://${CampusCafeApi}.execute-api.${AWS::Region}.amazonaws.com"
+  CatalogTableName:
+    Value: !Ref CatalogTable
+  OrdersTableName:
+    Value: !Ref OrdersTable
+  OrdersFunctionName:
+    Value: !Ref OrdersFunction
+  CatalogLogGroupName:
+    Value: !Ref CatalogLogGroup
+  OrdersLogGroupName:
+    Value: !Ref OrdersLogGroup
+  ApiAccessLogGroupName:
+    Value: !Ref ApiAccessLogGroup

@@ -1,0 +1,29 @@
+# Observabilidad: seguir un pedido del access log al log de la aplicación
+date=2026-10-30T07:36:30-0500
+
+## 1. Crear pedido y capturar el requestId de la respuesta
+HTTP/2 201 
+location: /orders/c69dc890-ee5a-4f1a-b376-007d9c814be5
+apigw-requestid: GDtUXg5AIAMEZPg=
+requestId=GDtUXg5AIAMEZPg=
+
+## 2. Access log de API Gateway (campus-cafe-ApiAccessLogGroup-6eGaeLcpn3pI)
+
+## 3. Log de la aplicación Orders (campus-cafe-OrdersLogGroup-j3Hyw3uiEoLr), mismo requestId
+{"requestId": "GDtUXg5AIAMEZPg=", "operation": "POST /orders", "result": "ok", "durationMs": 291.3, "status": 201, "orderId": "c69dc890-ee5a-4f1a-b376-007d9c814be5"}
+
+
+## 4. Orders llama a Catalog por el gateway: su propia entrada en el log de Catalog (campus-cafe-CatalogLogGroup-ajrwLqTZ9YJQ) (requestId distinto)
+END RequestId: 19a21bc5-aedf-4790-8f9d-afc4b7cfa029
+	REPORT RequestId: 19a21bc5-aedf-4790-8f9d-afc4b7cfa029	Duration: 6.88 ms	Billed Duration: 7 ms	Memory Size: 256 MB	Max Memory Used: 92 MB	
+
+
+## 2 (corrección). El access log tarda en entregarse; la consulta del paso 2 se hizo antes y salió vacía. Repetida ~1 min después:
+{"requestId":"GDtUXg5AIAMEZPg=","routeKey":"POST /orders","status":"201","integrationLatency":"323","responseLatency":"328","integrationRequestId":"6d1ad6b6-759e-48e0-aeb7-da6431cb0cf8","ip":"190.145.x.x","requestTime":"30/Oct/2026:12:36:30 +0000"}
+
+## Conclusión
+El mismo requestId "GDtUXg5AIAMEZPg=" aparece en: (1) cabecera apigw-requestid de la respuesta, (2) access log de API Gateway,
+(3) log JSON de la aplicación Orders (operation POST /orders, status 201, orderId c69dc890-..., durationMs 291.3).
+El integrationRequestId del access log es el RequestId de la invocación Lambda. Sin el requestId se puede llegar desde la cabecera de respuesta.
+Limitación: la llamada interna Orders -> Catalog pasa por el gateway con su propio requestId; este no se propaga al log de Catalog
+(no hay correlación entre las dos llamadas, solo por tiempo). El paso 4 de arriba muestra entradas recientes de Catalog, no una correlación demostrada.

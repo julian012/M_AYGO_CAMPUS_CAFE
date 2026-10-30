@@ -1,0 +1,31 @@
+API https://xp4tl33vtf.execute-api.us-east-1.amazonaws.com  started 2026-10-30T07:33:37-0500
+
+[PASS] GET /products -> 200 with items (200, 5 items)
+[PASS] GET /products/{id} -> 200 (200)
+[PASS] GET unknown product -> 404 (404)
+[PASS] POST /orders -> 201 (201)
+[PASS] Location header present
+[PASS] Server total ignores client-supplied price (got 700, expected 700)
+[PASS] Replay same key+body -> 200 same orderId (200)
+[PASS] Same key, different body -> 409 (409)
+[PASS] GET /orders/{id} -> 200 CREATED (200)
+[PASS] GET unknown order -> 404 (404)
+[PASS] Negative: missing Idempotency-Key -> 400 (400)
+[PASS] Negative: empty items -> 400 (400)
+[PASS] Negative: quantity 0 -> 400 (400)
+[PASS] Negative: quantity 11 -> 400 (400)
+[PASS] Negative: quantity float -> 400 (400)
+[PASS] Negative: quantity bool -> 400 (400)
+[PASS] Negative: duplicate product -> 400 (400)
+[PASS] Negative: unknown product -> 400 (400)
+[PASS] Negative: invalid JSON -> 400 (400)
+[PASS] Negative: unavailable product -> 409 (409)
+[PASS] Cancel -> 200 CANCELLED (200)
+[PASS] Cancel again -> 200 CANCELLED (repeatable) (200)
+[PASS] Cancel unknown -> 404 (404)
+       concurrent statuses: [200, 200, 200, 200, 201], orderIds: ['5ecfd8bf-5401-4ffc-8e6e-cac4e255ba29']
+[PASS] 5 concurrent same key -> exactly one orderId, exactly one 201
+[PASS] Order readable after configuration change (200)
+[PASS] Replay after configuration change -> 200 same orderId (200)
+
+26/26 checks passed

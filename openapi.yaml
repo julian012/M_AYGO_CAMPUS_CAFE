@@ -1,0 +1,190 @@
+openapi: 3.0.3
+info:
+  title: Campus Café API
+  version: 1.0.0
+  description: |
+    Public HTTP contract for Campus Café. Two services sit behind one gateway:
+    Catalog (`/products`) and Orders (`/orders`). Money is an integer in minor
+    units (cents) and a single currency is used application-wide.
+servers:
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com
+    variables:
+      apiId: {default: replace-me}
+      region: {default: us-east-1}
+paths:
+  /products:
+    get:
+      operationId: listProducts
+      tags: [Catalog]
+      summary: List the menu
+      responses:
+        "200":
+          description: All products
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: "#/components/schemas/Product"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+  /products/{productId}:
+    get:
+      operationId: getProduct
+      tags: [Catalog]
+      summary: Get one product
+      parameters:
+        - {name: productId, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The product
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Product"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [Orders]
+      summary: Create an order (idempotent)
+      description: |
+        Prices and totals are always computed by the server from Catalog; any
+        client-supplied price or total is ignored. A request with the same
+        `Idempotency-Key` and the same body replays the original result.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Client-generated key, one per order submission (max 128 chars).
+          schema: {type: string, minLength: 1, maxLength: 128}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CreateOrderRequest"}
+            example: {items: [{productId: coffee, quantity: 2}]}
+      responses:
+        "201":
+          description: Order created (first submission)
+          headers:
+            Location:
+              description: Path of the created order
+              schema: {type: string, example: /orders/a-server-generated-id}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Order"}
+        "200":
+          description: Replay of an earlier successful submission with the same key and request
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Order"}
+        "400":
+          description: Invalid request, missing key, or unknown product
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+        "409":
+          description: Key reused with a different request (IDEMPOTENCY_KEY_CONFLICT) or product unavailable (PRODUCT_UNAVAILABLE)
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [Orders]
+      summary: Retrieve the current state of an order
+      parameters:
+        - {name: orderId, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The order
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Order"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+  /orders/{orderId}/cancel:
+    post:
+      operationId: cancelOrder
+      tags: [Orders]
+      summary: Cancel an order (repeatable)
+      description: CREATED becomes CANCELLED. Repeating the call returns the same cancelled state.
+      parameters:
+        - {name: orderId, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The cancelled order, including on a repeated cancellation
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Order"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+components:
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    Unavailable:
+      description: A dependency or data store is unavailable
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+  schemas:
+    Product:
+      type: object
+      required: [productId, name, priceCents, currency, available]
+      properties:
+        productId: {type: string, example: coffee}
+        name: {type: string, example: Coffee}
+        priceCents: {type: integer, minimum: 0, example: 350}
+        currency: {type: string, example: USD}
+        available: {type: boolean}
+    CreateOrderRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 10
+          description: Distinct product lines; duplicate productIds are rejected.
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId: {type: string}
+              quantity: {type: integer, minimum: 1, maximum: 10}
+    OrderItem:
+      type: object
+      required: [productId, name, quantity, unitPriceCents]
+      properties:
+        productId: {type: string}
+        name: {type: string}
+        quantity: {type: integer}
+        unitPriceCents: {type: integer, description: Price snapshot taken at order time}
+    Order:
+      type: object
+      required: [orderId, status, items, totalCents, currency, createdAt, updatedAt]
+      properties:
+        orderId: {type: string}
+        status: {type: string, enum: [CREATED, CANCELLED]}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/OrderItem"}
+        totalCents: {type: integer}
+        currency: {type: string}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    Error:
+      type: object
+      required: [code, message, requestId]
+      properties:
+        code: {type: string, example: PRODUCT_UNAVAILABLE}
+        message: {type: string, example: This product cannot be ordered.}
+        requestId: {type: string}

@@ -1,0 +1,7 @@
+[
+  {"productId": "coffee",    "name": "Coffee",    "priceCents": 350, "currency": "USD", "available": true},
+  {"productId": "tea",       "name": "Tea",       "priceCents": 300, "currency": "USD", "available": true},
+  {"productId": "croissant", "name": "Croissant", "priceCents": 450, "currency": "USD", "available": true},
+  {"productId": "sandwich",  "name": "Sandwich",  "priceCents": 800, "currency": "USD", "available": true},
+  {"productId": "muffin",    "name": "Muffin",    "priceCents": 400, "currency": "USD", "available": false}
+]
