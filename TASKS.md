@@ -51,7 +51,7 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
 - [x] Corrección: pruebas positivas/negativas + intento de sobrescribir precio → `evidence/acceptance.txt` (26/26)
 - [x] Fiabilidad: 5 peticiones concurrentes ⇒ 1 pedido; replay tras `update-function-configuration` → `evidence/acceptance.txt` (26/26)
 - [x] Persistencia: leer el mismo pedido tras cambio de configuración de la Lambda → `evidence/acceptance.txt` (26/26)
-- [ ] Aislamiento de fallos: desplegar con `CatalogBaseUrlOverride` inválido ⇒ 503 y 0 pedidos
+- [x] Aislamiento de fallos: desplegar con `CatalogBaseUrlOverride` inválido ⇒ 503 y 0 pedidos → `evidence/fault-isolation.txt`
 - [x] Rendimiento: 3 de calentamiento + 20 lecturas secuenciales; tiempos, p95, región, runtime, cold start aparte → `evidence/performance.txt` (p95 161 ms; cold start 2229 ms cliente / Init 369 ms)
 - [x] Seguridad: revisar políticas IAM y que el navegador no tiene credenciales → `evidence/security.md`
 - [x] Observabilidad: seguir un pedido del access log al log de la aplicación (mismo `requestId`) → `evidence/observability.txt`
