@@ -80,6 +80,12 @@ python3 scripts/perf.py --api https://xp4tl33vtf.execute-api.us-east-1.amazonaws
 6. Cancelar dos veces: ambas devuelven `CANCELLED` (una sola transición persistida).
 7. Mostrar el `requestId` en el access log y en el log de Orders, y la comprobación concurrente (`acceptance.py`).
 
+Los pasos 4 a 7 se pueden ejecutar por API con un solo comando (crea un pedido nuevo en cada ejecución):
+```bash
+scripts/demo.sh
+```
+Muestra el replay (mismo `orderId`), los dos 409, la doble cancelación (mismo `updatedAt`), los 5 envíos concurrentes (cuatro 200 y un 201) y el `requestId` en el access log y en el log de Orders. El access log puede tardar hasta un minuto en entregarse. Los pasos 1 a 3 se hacen en el navegador. La salida del script incluye la IP real del cliente; no la pegues sin enmascarar en la evidencia.
+
 ## 8. Limpieza
 ```bash
 sam delete --stack-name campus-cafe --region us-east-1

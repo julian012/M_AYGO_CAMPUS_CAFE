@@ -10,7 +10,7 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
 - [x] SAM CLI 1.170.0 instalado
 - [x] `aws sts get-caller-identity` funciona (las credenciales del lab caducan: renovar al reiniciar el lab)
 - [x] `python3.12` desplegó sin error en `us-east-1`
-- [ ] 👤 Decidir con la pareja el reparto y confirmar con el profesor si algo no está claro
+- [x] 👤 Trabajo individual (sin reparto con pareja); confirmar con el profesor si algo no está claro
 
 ## 1. Diseño y contrato
 - [x] Estructura del monorepo
@@ -61,7 +61,7 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
 - [x] Diagrama de arquitectura breve (`docs/`) → `docs/architecture.md`
 - [x] Dos decisiones: límites de servicio/datos e idempotencia atómica (`docs/decisions.md`) → `docs/decisions.md`
 - [x] Anotar lo que **no** se verificó → README sección 9
-- [ ] Ensayar la demo (7 pasos) y subir el repositorio
+- [~] Ensayar la demo (7 pasos): `scripts/demo.sh` ensayado por API (pasos 4-7); faltan pasos 1-3 en navegador. Repositorio subido
 
 ## Despliegue en el Learner Lab: desviación a documentar
 El primer `sam deploy` falló: el lab prohíbe `iam:CreateRole`. La plantilla ahora acepta `ExistingExecutionRoleArn`; el despliegue se hizo con `LabRole` para ambas funciones:
