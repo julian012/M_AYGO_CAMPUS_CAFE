@@ -85,13 +85,15 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
 - [ ] 👤 A1–A4 (token expirado, `nbf`, audiencia, emisor): requieren tokens firmados y authorizer desplegado
 - [x] Login real de Alice y Bob en navegador y CORS/preflight desplegado
 - [ ] 👤 Restricción de invocación directa de Lambda (no verificada)
-- [ ] 👤 Revisar y reescribir con tus palabras la nota de uso de IA y las limitaciones de `docs/security.md`
+- [x] Nota de uso de IA y limitaciones de `docs/security.md`: aportes de la persona consolidados (versión final)
 
 ### Pendiente antes de entregar
 - [x] Guion de demo (Tarea 7) en `docs/demo.md` (comandos locales verificados)
 - [ ] 👤 Ensayar la demo (pasos 1-2 en navegador con Alice y Bob)
 - [ ] Decidir si se adapta `scripts/acceptance.py` (llama a Orders sin token: no sirve contra una API protegida) o se deja documentado
-- [ ] Entregar por el canal del curso, sin credenciales ni evidencia privada del lab
+- [x] Entregable preparado: `docs/entrega-act2.md` (texto para el cuadro) y `Campus_Cafe_ACT2_Seguridad.pdf` (carpeta del taller)
+- [ ] 👤 Subir por el canal del curso antes del 2026-11-06 20:59, sin credenciales ni evidencia privada del lab
+- [ ] 👤 Cambiar o bloquear las contraseñas de Alice, Bob y Carol (sus tokens se pegaron en el chat)
 
 ## Despliegue en el Learner Lab: desviación a documentar
 El primer `sam deploy` falló: el lab prohíbe `iam:CreateRole`. La plantilla ahora acepta `ExistingExecutionRoleArn`; el despliegue se hizo con `LabRole` para ambas funciones:
