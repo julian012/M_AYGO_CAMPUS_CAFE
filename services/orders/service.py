@@ -10,6 +10,11 @@ def utc_now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def not_found():
+    """One uniform error for missing, foreign and ownerless orders."""
+    return ApiError(404, "ORDER_NOT_FOUND", "Order not found")
+
+
 class OrderService:
     def __init__(self, repo, catalog, clock=utc_now, id_factory=lambda: str(uuid.uuid4())):
         self.repo = repo
@@ -17,14 +22,14 @@ class OrderService:
         self.clock = clock
         self.id_factory = id_factory
 
-    def create_order(self, key, items):
+    def create_order(self, principal, key, items):
         """Returns (status, order, headers)."""
         fp = domain.fingerprint(items)
 
         # Check for a previous submission BEFORE contacting Catalog.
-        existing = self.repo.get_idempotency(key)
+        existing = self.repo.get_idempotency(principal, key)
         if existing:
-            return self._replay(existing, fp)
+            return self._replay(existing, principal, fp)
 
         products = {}
         for item in items:
@@ -36,29 +41,32 @@ class OrderService:
             products[item["productId"]] = product
 
         order = domain.build_order(self.id_factory(), items, products, self.clock())
-        if self.repo.create_order_atomic(order, key, fp):
+        if self.repo.create_order_atomic(order, principal, key, fp):
             return 201, order, {"Location": f"/orders/{order['orderId']}"}
 
         # Lost the race: another request claimed this key. Resolve like a replay.
-        existing = self.repo.get_idempotency(key)
+        existing = self.repo.get_idempotency(principal, key)
         if existing:
-            return self._replay(existing, fp)
+            return self._replay(existing, principal, fp)
         raise ApiError(503, "TEMPORARY_FAILURE", "Could not store the order. Please retry.")
 
     @staticmethod
-    def _replay(existing, fp):
+    def _replay(existing, principal, fp):
+        # Defensive: the lookup key already embeds the principal; never replay a mismatched owner.
+        if existing.get("ownerIssuer") != principal.iss or existing.get("ownerSubject") != principal.sub:
+            raise ApiError(503, "TEMPORARY_FAILURE", "Could not process the request.")
         if existing["fingerprint"] != fp:
             raise ApiError(409, "IDEMPOTENCY_KEY_CONFLICT", "This Idempotency-Key was used with a different request.")
         return 200, existing["response"], {}
 
-    def get_order(self, order_id):
-        order = self.repo.get_order(order_id)
+    def get_order(self, principal, order_id):
+        order = self.repo.get_order(order_id, principal)
         if order is None:
-            raise ApiError(404, "ORDER_NOT_FOUND", "Order not found.")
+            raise not_found()
         return order
 
-    def cancel_order(self, order_id):
-        order = self.repo.cancel_order(order_id, self.clock())
+    def cancel_order(self, principal, order_id):
+        order = self.repo.cancel_order(order_id, principal, self.clock())
         if order is None:
-            raise ApiError(404, "ORDER_NOT_FOUND", "Order not found.")
+            raise not_found()
         return order

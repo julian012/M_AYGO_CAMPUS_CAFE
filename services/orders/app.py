@@ -5,6 +5,7 @@ import time
 from botocore.exceptions import BotoCoreError, ClientError
 
 import domain
+from auth import principal_from_event
 from catalog_client import CatalogClient
 from common import ApiError, error_response, log, response
 from repository import DynamoOrderRepository
@@ -39,19 +40,24 @@ def handler(event, context, repo=None, catalog=None):
     route = event.get("routeKey", "")
     extra = {}
     try:
-        service = build_service(event, repo, catalog)
         params = event.get("pathParameters") or {}
         if route == "POST /orders":
+            principal = principal_from_event(event)  # fail closed before any business logic
+            service = build_service(event, repo, catalog)
             key, items = domain.parse_create_request(event.get("headers"), event.get("body"))
-            status, order, headers = service.create_order(key, items)
+            status, order, headers = service.create_order(principal, key, items)
             extra["orderId"] = order["orderId"]
             result = response(status, order, headers)
         elif route == "GET /orders/{orderId}":
+            principal = principal_from_event(event)
+            service = build_service(event, repo, catalog)
             extra["orderId"] = params.get("orderId")
-            result = response(200, service.get_order(params.get("orderId", "")))
+            result = response(200, service.get_order(principal, params.get("orderId", "")))
         elif route == "POST /orders/{orderId}/cancel":
+            principal = principal_from_event(event)
+            service = build_service(event, repo, catalog)
             extra["orderId"] = params.get("orderId")
-            result = response(200, service.cancel_order(params.get("orderId", "")))
+            result = response(200, service.cancel_order(principal, params.get("orderId", "")))
         else:
             raise ApiError(404, "ROUTE_NOT_FOUND", "Route not found.")
         log(request_id, route, "ok", started, status=result["statusCode"], **extra)

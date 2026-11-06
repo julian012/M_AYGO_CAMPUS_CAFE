@@ -6,3 +6,4 @@ samconfig.toml
 .DS_Store
 *.pem
 .env
+frontend/config.local.js

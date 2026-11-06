@@ -13,6 +13,11 @@
       <input id="api-url" type="url" spellcheck="false">
       <button id="api-save" type="button">Guardar</button>
     </label>
+    <div id="auth" class="api">
+      <span id="auth-state">No has iniciado sesión</span>
+      <button id="login" type="button">Iniciar sesión</button>
+      <button id="logout" type="button" class="secondary" hidden>Cerrar sesión</button>
+    </div>
   </header>
 
   <div id="banner" role="status" aria-live="polite" hidden></div>
@@ -46,7 +51,12 @@
     </section>
   </main>
 
+  <!-- Official Auth0 SPA SDK (Authorization Code + PKCE). Pinned version + SRI. -->
+  <script src="https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.1.3/dist/auth0-spa-js.production.js"
+          integrity="sha384-kqzKmDnnUDk7XnLozKFdHFn4PZAm48zPEp+1sLCCYDfo1RJ51VA5+BVf4Dx6SKEo"
+          crossorigin="anonymous"></script>
   <script src="config.js"></script>
+  <script src="config.local.js" onerror="void 0"></script><!-- optional, git-ignored; sets window.CAMPUS_CAFE_AUTH -->
   <script src="app.js"></script>
 </body>
 </html>

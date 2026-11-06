@@ -1,0 +1,55 @@
+# Security checks (local) - 2026-11-02T21:36:52Z
+$ scripts/run_unit_tests.sh
+test_get_product (test_catalog.CatalogTests) ... /Users/jcserna/Documents/obsidian/Notes/ISIS_AYGO_M_Arquitectura_gobernabilidad/Talleres/2026_10_29/campus-cafe/.venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+test_list_has_five_products_with_one_unavailable (test_catalog.CatalogTests) ... ok
+test_store_failure_returns_503 (test_catalog.CatalogTests) ... ok
+test_unknown_product_404 (test_catalog.CatalogTests) ... ok
+Ran 4 tests in 0.344s
+OK
+test_a5_same_subject_different_issuer_is_a_different_principal (test_orders.OrdersTests) ... /Users/jcserna/Documents/obsidian/Notes/ISIS_AYGO_M_Arquitectura_gobernabilidad/Talleres/2026_10_29/campus-cafe/.venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+test_cancel_is_idempotent_and_persisted (test_orders.OrdersTests) ... ok
+test_cancel_unknown_order_404_and_creates_nothing (test_orders.OrdersTests) ... ok
+test_catalog_failure_returns_503_and_stores_nothing (test_orders.OrdersTests) ... ok
+test_client_price_override_is_ignored (test_orders.OrdersTests) ... ok
+test_create_computes_total_server_side (test_orders.OrdersTests) ... ok
+test_created_order_persists_server_derived_owner_and_hides_it (test_orders.OrdersTests) ... ok
+test_expected_issuer_pin_rejects_other_issuer (test_orders.OrdersTests) ... ok
+test_five_concurrent_identical_requests_create_one_order (test_orders.OrdersTests) ... ok
+test_get_order_survives_new_repository_instance (test_orders.OrdersTests) ... ok
+test_get_unknown_order_404 (test_orders.OrdersTests) ... ok
+test_idempotency_key_encoding_has_no_collisions (test_orders.OrdersTests) ... ok
+test_invalid_requests_return_400 (test_orders.OrdersTests) ... ok
+test_missing_key_and_bad_json_return_400 (test_orders.OrdersTests) ... ok
+test_replay_is_stable_after_price_change (test_orders.OrdersTests) ... ok
+test_replay_returns_original_without_new_order_or_catalog_call (test_orders.OrdersTests) ... ok
+test_s10_replay_after_catalog_price_change_keeps_snapshot_for_same_principal_only (test_orders.OrdersTests) ... ok
+test_s1_forged_owner_fields_rejected_and_nothing_persisted (test_orders.OrdersTests) ... ok
+test_s1_identity_in_headers_or_body_is_ignored (test_orders.OrdersTests) ... ok
+test_s1_missing_or_malformed_context_fails_closed_without_writes (test_orders.OrdersTests) ... ok
+test_s2_read_own_foreign_missing_and_legacy_ownerless (test_orders.OrdersTests) ... ok
+test_s3_cancel_legacy_ownerless_is_404_and_untouched (test_orders.OrdersTests) ... ok
+test_s3_foreign_cancel_is_404_and_changes_nothing (test_orders.OrdersTests) ... ok
+test_s4_cancel_write_condition_includes_owner_and_status (test_orders.OrdersTests) ... ok
+test_s4_owner_flip_between_check_and_write_is_refused (test_orders.OrdersTests) ... ok
+test_s4_stale_read_cannot_win_against_racing_status_change (test_orders.OrdersTests)
+A pre-check would pass, but the status changes before the write: the conditional ... ok
+test_s5_equivalent_json_canonicalization (test_orders.OrdersTests) ... ok
+test_s5_replay_then_changed_payload_conflicts (test_orders.OrdersTests) ... ok
+test_s6_bob_same_client_key_gets_independent_order (test_orders.OrdersTests) ... ok
+test_s7_concurrent_duplicates_from_same_principal_one_order (test_orders.OrdersTests) ... ok
+test_s7_conditional_failure_replays_the_winner_and_leaves_no_orphan (test_orders.OrdersTests)
+Simulate losing the race: winner's record appears between our lookup and our write. ... ok
+test_s8_tampered_price_ignored_and_catalog_failure_leaves_nothing (test_orders.OrdersTests) ... ok
+test_s9_logs_have_request_id_and_no_identity_or_tokens (test_orders.OrdersTests) ... ok
+test_same_key_different_request_conflicts (test_orders.OrdersTests) ... ok
+test_unknown_product_400_and_unavailable_409 (test_orders.OrdersTests) ... ok
+test_unknown_route_404 (test_orders.OrdersTests) ... ok
+Ran 36 tests in 2.229s
+OK
+
+$ .venv/bin/cfn-lint template.yaml  (only the 3 pre-existing findings)
+E3031 '' does not match '^arn:(aws[a-zA-Z-]*)?:iam::\\d{12}:
+W1028 ['Fn::If', 1] is not reachable. When setting condition
+W1028 ['Fn::If', 1] is not reachable. When setting condition
+$ sam validate --lint
+/Users/jcserna/Documents/obsidian/Notes/ISIS_AYGO_M_Arquitectura_gobernabilidad/Talleres/2026_10_29/campus-cafe/template.yaml is a valid SAM Template

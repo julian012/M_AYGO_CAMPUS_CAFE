@@ -27,12 +27,12 @@ AWS CLI 2.x, SAM CLI 1.170+, Python 3 con `venv`, credenciales del Learner Lab e
 ## 2. Comprobaciones locales (sin AWS)
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
-scripts/run_unit_tests.sh            # 19 pruebas (4 Catalog + 15 Orders) con DynamoDB simulado (moto)
+scripts/run_unit_tests.sh            # 36 pruebas (4 Catalog + 32 Orders) con DynamoDB simulado (moto)
 .venv/bin/cfn-lint template.yaml
 sam validate --lint
 ```
 
-Salida guardada en `evidence/local-checks.txt`. `scripts/run_unit_tests.sh` pasa (19 pruebas) y `sam validate --lint` da la plantilla como válida. **`cfn-lint` reporta 1 error (E3031) y 2 advertencias (W1028)**: el parámetro opcional `ExistingExecutionRoleArn` tiene como valor por defecto `""`, que no cumple el patrón de ARN de IAM, y la condición `UseExistingRole` hace inalcanzable una rama de `Fn::If`. No impide el despliegue (el stack se creó y funciona), pero no está resuelto.
+Salida guardada en `evidence/local-checks.txt`. `scripts/run_unit_tests.sh` pasa (36 pruebas tras ACT2) y `sam validate --lint` da la plantilla como válida. **`cfn-lint` reporta 1 error (E3031) y 2 advertencias (W1028)**: el parámetro opcional `ExistingExecutionRoleArn` tiene como valor por defecto `""`, que no cumple el patrón de ARN de IAM, y la condición `UseExistingRole` hace inalcanzable una rama de `Fn::If`. No impide el despliegue (el stack se creó y funciona), pero no está resuelto.
 
 ## 3. Despliegue
 ```bash
@@ -40,6 +40,7 @@ aws sts get-caller-identity          # confirmar cuenta y región antes de despl
 sam build
 sam deploy --stack-name campus-cafe --region us-east-1 --resolve-s3 --capabilities CAPABILITY_IAM \
   --parameter-overrides FrontendOrigin=http://localhost:8080 \
+  Auth0IssuerUrl=https://<TENANT>.<REGION>.auth0.com/ Auth0Audience=<API_IDENTIFIER> \
   ExistingExecutionRoleArn=arn:aws:iam::318203795545:role/LabRole
 python3 scripts/seed.py --stack campus-cafe --region us-east-1     # repetible: carga 5 productos
 ```
@@ -107,3 +108,11 @@ Las tablas no tienen `DeletionPolicy: Retain`: se borran con el stack. Hacerlo s
 - **Claves de idempotencia:** no caducan (sin TTL).
 - **Limpieza (`sam delete`):** documentada, no ejecutada.
 - **Evidencia corregida:** un commit intermedio de `evidence/fault-isolation.txt` afirmó por error que el despliegue estaba restaurado; la restauración inicial falló y se repitió. Ver el historial de git y el archivo.
+
+## 6. Seguridad (ACT2): identidad y propiedad de pedidos
+Detalle, matriz de verificación, decision record y limitaciones en [docs/security.md](docs/security.md); evidencia en `evidence/security-local-checks.txt`.
+
+- Rutas de Orders protegidas con authorizer JWT nativo (un scope por ruta); productos públicos. Orders deriva el dueño de `(iss, sub)` verificado, aplica propiedad en lectura y cancelación condicional, e idempotencia por principal.
+- **Pista local:** no hay despliegue ni tenant Auth0; login y frontera de nube están **sin verificar** (BLOCKED / NOT RUN).
+- Para la pista en vivo: `Auth0IssuerUrl` debe coincidir exactamente con el `iss` (con `/` final) y `Auth0Audience` es el identificador de la API (no el Client ID). Completar `frontend/config.js` (`domain`, `clientId`, `audience`: valores públicos, **sin client secret**) y registrar `http://localhost:8080` como callback, logout y origen en Auth0. Los despliegues usan el rol existente (`ExistingExecutionRoleArn`); no se crean roles IAM.
+- El script `scripts/acceptance.py` de la línea base llama a Orders sin token y ya no sirve contra una API protegida sin adaptarlo.

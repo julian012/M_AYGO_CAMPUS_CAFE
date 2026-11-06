@@ -8,6 +8,8 @@ MAX_LINES = 10
 MAX_QUANTITY = 10
 MAX_KEY_LENGTH = 128
 MAX_ID_LENGTH = 64
+# Ownership is derived on the server from verified claims; never accepted from the client.
+FORBIDDEN_OWNER_FIELDS = frozenset({"owner", "ownerSub", "ownerIssuer", "ownerSubject", "customerId"})
 
 
 def parse_create_request(headers, raw_body):
@@ -26,6 +28,9 @@ def parse_create_request(headers, raw_body):
     if not isinstance(body, dict) or not isinstance(body.get("items"), list):
         raise ApiError(400, "INVALID_REQUEST", "Body must contain an items list.")
 
+    if FORBIDDEN_OWNER_FIELDS & body.keys():
+        raise ApiError(400, "FORBIDDEN_FIELD", "Ownership fields are set by the server and cannot be supplied.")
+
     raw_items = body["items"]
     if not 1 <= len(raw_items) <= MAX_LINES:
         raise ApiError(400, "INVALID_REQUEST", "An order needs 1 to 10 product lines.")
@@ -34,6 +39,8 @@ def parse_create_request(headers, raw_body):
     for line in raw_items:
         if not isinstance(line, dict):
             raise ApiError(400, "INVALID_REQUEST", "Each item must be an object.")
+        if FORBIDDEN_OWNER_FIELDS & line.keys():
+            raise ApiError(400, "FORBIDDEN_FIELD", "Ownership fields are set by the server and cannot be supplied.")
         product_id, quantity = line.get("productId"), line.get("quantity")
         if not isinstance(product_id, str) or not product_id.strip() or len(product_id) > MAX_ID_LENGTH:
             raise ApiError(400, "INVALID_REQUEST", "Each item needs a productId.")

@@ -11,6 +11,15 @@ Parameters:
     Type: Number
     Default: 14
     AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90]
+  Auth0IssuerUrl:
+    Type: String
+    AllowedPattern: '^https://[A-Za-z0-9.-]+/$'
+    ConstraintDescription: Exact token issuer, including scheme and the trailing slash (e.g. https://TENANT.REGION.auth0.com/).
+    Description: Public. Issuer (iss claim) of the access tokens. Must match the issued token exactly. No default on purpose, so a deploy cannot silently use a placeholder.
+  Auth0Audience:
+    Type: String
+    MinLength: 1
+    Description: Public. Identifier (audience) of the custom Auth0 API. NOT the SPA client ID. Use the same value in the SPA SDK request.
   CatalogBaseUrlOverride:
     Type: String
     Default: ""
@@ -73,13 +82,22 @@ Resources:
       CorsConfiguration:
         AllowOrigins: [!Ref FrontendOrigin]
         AllowMethods: [GET, POST, OPTIONS]
-        AllowHeaders: [content-type, idempotency-key]
+        AllowHeaders: [authorization, content-type, idempotency-key]
         ExposeHeaders: [location]
         MaxAge: 600
       AccessLogSettings:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: '{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status","integrationLatency":"$context.integrationLatency","responseLatency":"$context.responseLatency","integrationRequestId":"$context.integration.requestId","ip":"$context.identity.sourceIp","requestTime":"$context.requestTime"}'
-      # Future: add an Auth block with a JWT authorizer here.
+      # Native JWT authorizer (no Lambda authorizer). It is attached ONLY to the Orders routes
+      # below; there is deliberately no DefaultAuthorizer, so every route's protection is explicit.
+      Auth:
+        Authorizers:
+          Auth0Jwt:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Ref Auth0IssuerUrl
+              audience:
+                - !Ref Auth0Audience
 
   # ---------------- Services ----------------
   CatalogFunction:
@@ -120,6 +138,7 @@ Resources:
       Environment:
         Variables:
           ORDERS_TABLE: !Ref OrdersTable
+          EXPECTED_ISSUER: !Ref Auth0IssuerUrl
           CATALOG_BASE_URL: !Ref CatalogBaseUrlOverride
           CATALOG_DEADLINE_SECONDS: "3"
           CATALOG_ATTEMPT_TIMEOUT_SECONDS: "1.5"
@@ -138,13 +157,34 @@ Resources:
       Events:
         CreateOrder:
           Type: HttpApi
-          Properties: {ApiId: !Ref CampusCafeApi, Method: POST, Path: /orders, PayloadFormatVersion: "2.0"}
+          Properties:
+            ApiId: !Ref CampusCafeApi
+            Method: POST
+            Path: /orders
+            PayloadFormatVersion: "2.0"
+            Auth:
+              Authorizer: Auth0Jwt
+              AuthorizationScopes: [orders:create]
         GetOrder:
           Type: HttpApi
-          Properties: {ApiId: !Ref CampusCafeApi, Method: GET, Path: "/orders/{orderId}", PayloadFormatVersion: "2.0"}
+          Properties:
+            ApiId: !Ref CampusCafeApi
+            Method: GET
+            Path: "/orders/{orderId}"
+            PayloadFormatVersion: "2.0"
+            Auth:
+              Authorizer: Auth0Jwt
+              AuthorizationScopes: [orders:read]
         CancelOrder:
           Type: HttpApi
-          Properties: {ApiId: !Ref CampusCafeApi, Method: POST, Path: "/orders/{orderId}/cancel", PayloadFormatVersion: "2.0"}
+          Properties:
+            ApiId: !Ref CampusCafeApi
+            Method: POST
+            Path: "/orders/{orderId}/cancel"
+            PayloadFormatVersion: "2.0"
+            Auth:
+              Authorizer: Auth0Jwt
+              AuthorizationScopes: [orders:cancel]
 
 Outputs:
   ApiBaseUrl:

@@ -1,6 +1,6 @@
 # Campus Café: lista de tareas
 
-**Entrega:** viernes 30-oct-2026, 23:59 · **Stack:** Python 3.12 + AWS SAM · **Última actualización:** 2026-10-29
+**Entrega:** viernes 30-oct-2026, 23:59 · **Stack:** Python 3.12 + AWS SAM · **Última actualización:** 2026-11-02 (ACT2 añadida en la sección 7)
 
 Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS · `[ ]` pendiente · 👤 lo debe hacer una persona (requiere su cuenta/decisión)
 
@@ -63,6 +63,36 @@ Leyenda: `[x]` hecho y verificado · `[~]` escrito, falta verificar contra AWS �
 - [x] Anotar lo que **no** se verificó → README sección 9
 - [~] Ensayar la demo (7 pasos): `scripts/demo.sh` ensayado por API (pasos 4-7); faltan pasos 1-3 en navegador. Repositorio subido
 
+## 7. ACT2: Diseño de aplicaciones cloud seguras (pista LOCAL)
+**Entrega:** viernes 6-nov-2026, 20:59 · **Pista:** local + verificación parcial en vivo (tenant Auth0 propio, stack redesplegado el 2026-11-04) · Detalle en [docs/security.md](docs/security.md)
+
+### Hecho y verificado en local (moto): 36 pruebas pasan (4 Catalog + 32 Orders)
+- [x] Línea base: 19 pruebas pasaban antes de cambiar nada; 3 casos de abuso mapeados a su frontera
+- [x] `services/orders/auth.py`: principal `(iss, sub)` solo desde `requestContext.authorizer.jwt.claims`; falla cerrada (401); `EXPECTED_ISSUER` opcional
+- [x] Creación: dueño derivado en servidor; campos `owner*`/`customerId` ⇒ 400 `FORBIDDEN_FIELD`
+- [x] Lectura: solo el dueño; inexistente, ajeno y legacy ⇒ el mismo 404 `Order not found`
+- [x] Cancelación: `ConditionExpression` con dueño **y** estado; sin backfill de pedidos legacy
+- [x] Idempotencia: clave `IDEMP#sha256([iss, sub, key])`, replay/409 por principal, inserción condicional atómica conservada
+- [x] Garantías de ACT1 conservadas (precios del servidor, transacción, 503 sin pedido parcial, `requestId`, tablas separadas)
+- [x] Prueba de mutación: al quitar dueño/estado de la condición de cancelación fallan 5 pruebas
+- [x] `template.yaml`: authorizer JWT nativo solo en las 3 rutas de Orders (un scope por ruta), parámetros `Auth0IssuerUrl`/`Auth0Audience`, CORS con `authorization`; `cfn-lint` sin hallazgos nuevos, `sam validate --lint` y `sam build` correctos
+- [x] Frontend: SDK Auth0 (v2.1.3 + SRI), PKCE, access token en `Authorization`, pedidos por usuario (solo `node --check` y revisión de código)
+- [x] Documentación: `docs/security.md` (rutas→scopes, esquema, decision record, matriz, política staff/catálogo, limitaciones, nota de IA), README sección 6, `evidence/security-local-checks.txt`
+
+### BLOCKED / NOT RUN (se declara, no se inventa)
+- [x] G1–G5 y CORS contra la API desplegada: PASS (`evidence/security-live-checks.md`)
+- [ ] 👤 G6 (ID token en lugar del access token): NOT RUN
+- [ ] 👤 A1–A4 (token expirado, `nbf`, audiencia, emisor): requieren tokens firmados y authorizer desplegado
+- [x] Login real de Alice y Bob en navegador y CORS/preflight desplegado
+- [ ] 👤 Restricción de invocación directa de Lambda (no verificada)
+- [ ] 👤 Revisar y reescribir con tus palabras la nota de uso de IA y las limitaciones de `docs/security.md`
+
+### Pendiente antes de entregar
+- [x] Guion de demo (Tarea 7) en `docs/demo.md` (comandos locales verificados)
+- [ ] 👤 Ensayar la demo (pasos 1-2 en navegador con Alice y Bob)
+- [ ] Decidir si se adapta `scripts/acceptance.py` (llama a Orders sin token: no sirve contra una API protegida) o se deja documentado
+- [ ] Entregar por el canal del curso, sin credenciales ni evidencia privada del lab
+
 ## Despliegue en el Learner Lab: desviación a documentar
 El primer `sam deploy` falló: el lab prohíbe `iam:CreateRole`. La plantilla ahora acepta `ExistingExecutionRoleArn`; el despliegue se hizo con `LabRole` para ambas funciones:
 ```bash
@@ -72,6 +102,8 @@ sam deploy --stack-name campus-cafe --region us-east-1 --resolve-s3 --capabiliti
 ```
 - Sin ese parámetro la plantilla crea un rol de mínimo privilegio por servicio (diseño original). **Ese camino no se pudo probar en AWS** aquí; solo `cfn-lint`/`sam validate`.
 - Con `LabRole` **no se demuestra** aislamiento IAM entre servicios: declararlo en el README y en la sección de seguridad.
+
+> Nota ACT2: el stack desplegado sigue siendo la versión de ACT1 (sin authorizer). Un redespliegue de ACT2 exige además `Auth0IssuerUrl` y `Auth0Audience` (ver README sección 6); los pedidos previos quedan sin dueño y devuelven 404 por diseño.
 
 ## Pendiente a vigilar
 - Las pruebas locales corren en Python 3.9 con moto; la Lambda usará 3.12. El código evita sintaxis nueva, pero la prueba real es el despliegue.
